@@ -1,0 +1,91 @@
+services: 
+    gateway:
+        build: 
+            context: ./gateway
+            dockerfile: ../Dockerfile
+        container_name: gateway
+        ports:
+            - "8000:8000"
+        #volumes:
+        #    - ./gateway:/var/www/html
+        working_dir: /var/www/html/
+        tty: true
+        stdin_open: true
+        networks:
+            red_publica:
+                ipv4_address: 192.168.40.2
+        command: sh -c "composer update && php artisan key:generate && php artisan migrate:refresh && php artisan db:seed && php artisan serve --host=0.0.0.0 --port=8000"
+
+    transacciones:
+        build: 
+            context: ./transacciones
+            dockerfile: ../Dockerfile
+        container_name: transacciones
+        ports:
+            - "8001:8000"
+        #volumes:
+        #    - ./transacciones:/var/www/html
+        working_dir: /var/www/html
+        tty: true
+        stdin_open: true
+        networks:
+            red_publica:
+                ipv4_address: 192.168.40.3
+        command: sh -c "composer update && php artisan key:generate && php artisan serve --host=0.0.0.0 --port=8000"
+    notificaciones:
+        build: 
+            context: ./notificaciones
+            dockerfile: ../Dockerfile
+        container_name: notificaciones
+        ports:
+            - "8002:8000"
+        #volumes:
+        #    - ./notificaciones:/var/www/html
+        working_dir: /var/www/html
+        tty: true
+        stdin_open: true
+        networks:
+            red_publica:
+                ipv4_address: 192.168.40.4
+        command: sh -c "composer update && php artisan key:generate && php artisan serve --host=0.0.0.0 --port=8000"
+
+    db:
+        image: mysql:8.0
+        container_name: mysql_db
+        ports:
+         - "3306:3306"
+        environment:
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: laravel
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: laravel
+        volumes:
+            - dbdata:/var/lib/mysql
+        networks:
+            red_publica:
+                ipv4_address: 192.168.40.5
+
+    api_flask:
+        build: 
+          context: .
+          dockerfile: Dockerfile.flask
+        container_name: api_flask
+        ports:
+            - "5000:5000"
+        networks:
+            red_publica:
+                ipv4_address: 192.168.40.6
+        #volumes:
+        #     - ./apiflask:/app
+        working_dir: /app    
+
+networks:
+  red_publica:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.40.0/24
+volumes:
+    dbdata:
+    #jenkins_home:
+
